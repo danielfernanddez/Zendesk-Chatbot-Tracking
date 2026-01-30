@@ -1,0 +1,45 @@
+<script id="gtm-chatbot-tracking">
+  var attempts = 0;
+  var maxAttempts = 20;
+
+  var checkZendesk = setInterval(function() {
+      attempts++;
+
+      if (typeof zE !== 'undefined') {
+          clearInterval(checkZendesk);
+
+          var trackChatbot = function(status, count) {
+              window.dataLayer.push({
+                  'event': 'chatbot_interaction',
+                  'chatbot_status': status,
+                  'chatbot_unread_messages': (count > 0) ? count : undefined
+              });
+          };
+
+          // --- LISTENERS ---
+          
+          // Open
+          zE('messenger:on', 'open', function() {
+              trackChatbot('open');
+          });
+
+          // Close
+          zE('messenger:on', 'close', function() {
+              trackChatbot('close');
+          });
+
+          // Reply Received
+          zE('messenger:on', 'unreadMessages', function(count) {
+              if (count > 0) {
+                  trackChatbot('reply_received', count);
+              }
+          });
+      }
+
+      if (attempts >= maxAttempts) {
+          clearInterval(checkZendesk);
+          console.log('GTM: Zendesk widget not found.');
+      }
+
+  }, 1000);
+</script>
